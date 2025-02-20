@@ -1,4 +1,6 @@
 
+import { Link } from "react-router-dom";
+
 interface CourtCardProps {
   id: string;
   name: string;
@@ -29,9 +31,12 @@ const CourtCard = ({ id, name, imageUrl, price, rating, location }: CourtCardPro
             <span className="text-yellow-400">★</span>
             <span className="ml-1 text-sm">{rating.toFixed(1)}</span>
           </div>
-          <button className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors">
+          <Link
+            to={`/courts/${id}`}
+            className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
+          >
             View Details
-          </button>
+          </Link>
         </div>
       </div>
     </div>
