@@ -25,11 +25,26 @@ const Login = () => {
       });
 
       if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        // Handle specific error cases
+        if (error.message.includes("Invalid login credentials")) {
+          toast({
+            title: "Login Failed",
+            description: "Email or password is incorrect. Please try again or register if you don't have an account.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes("Email not confirmed")) {
+          toast({
+            title: "Email Not Verified",
+            description: "Please check your email and verify your account before logging in.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Success",
