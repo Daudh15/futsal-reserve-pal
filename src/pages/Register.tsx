@@ -1,23 +1,75 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import { User, Mail, Lock, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement registration logic when backend is connected
-    console.log("Registration attempt:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+          },
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Registration successful! Please check your email to verify your account.",
+        });
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,18 +91,37 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium">
-                Full Name
+              <label htmlFor="firstName" className="block text-sm font-medium">
+                First Name
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <Input
-                  id="name"
-                  name="name"
+                  id="firstName"
+                  name="firstName"
                   type="text"
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
                   className="pl-10"
-                  value={formData.name}
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="block text-sm font-medium">
+                Last Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  placeholder="Enter your last name"
+                  className="pl-10"
+                  value={formData.lastName}
                   onChange={handleChange}
                   required
                 />
@@ -135,9 +206,10 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors"
+              disabled={loading}
+              className="w-full py-3 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors disabled:opacity-50"
             >
-              Create Account
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
